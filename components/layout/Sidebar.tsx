@@ -3,13 +3,18 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
 import {
   LayoutDashboard,
   FileText,
-  PlusCircle,
-  MapPin,
+  GitBranch,
+  Settings,
   ChevronRight,
   ShieldCheck,
+  User,
+  Shield,
+  LogOut,
+  LogIn,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -19,13 +24,53 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user, pov, logout } = useAuth();
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Complaints', href: '/complaints', icon: FileText },
-    { name: 'Register Complaint', href: '/complaints/register', icon: PlusCircle },
-    { name: 'City Incident Map', href: '/map', icon: MapPin },
+  // Client POV navigation: Only Complaints and Settings
+  const clientNavigation = [
+    {
+      name: 'Complaints',
+      href: '/complaints',
+      icon: FileText,
+      badge: 'Portal',
+    },
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: Settings,
+      badge: null,
+    },
   ];
+
+  // Administrator POV navigation: Dashboard, Complaint List, Complaint Process, and Settings
+  const adminNavigation = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      badge: null,
+    },
+    {
+      name: 'Complaint List',
+      href: '/complaints',
+      icon: FileText,
+      badge: null,
+    },
+    {
+      name: 'Complaint Process',
+      href: '/complaints/process',
+      icon: GitBranch,
+      badge: 'Workflow',
+    },
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: Settings,
+      badge: null,
+    },
+  ];
+
+  const navigation = pov === 'CLIENT' ? clientNavigation : adminNavigation;
 
   return (
     <>
@@ -53,21 +98,71 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               City of Butuan
             </div>
             <div className="text-sm font-bold text-white tracking-tight leading-tight truncate">
-              Complaints Portal
+              Complaints System
             </div>
-            <div className="text-[10px] text-slate-400">Public Service Management</div>
+            <div className="text-[10px] text-slate-400">
+              {pov === 'CLIENT' ? 'Citizen Client Portal' : 'Administrator Console'}
+            </div>
+          </div>
+        </div>
+
+        {/* Authenticated Account Badge (No manual switch button) */}
+        <div className="px-4 pt-4 pb-1">
+          <div
+            className={`p-3 rounded-2xl border text-xs flex items-center justify-between ${
+              pov === 'CLIENT'
+                ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200'
+                : 'bg-blue-950/40 border-blue-800/80 text-blue-200'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {pov === 'CLIENT' ? (
+                <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                  <User className="w-4 h-4" />
+                </div>
+              ) : (
+                <div className="w-7 h-7 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                  <Shield className="w-4 h-4" />
+                </div>
+              )}
+              <div>
+                <div className="font-bold text-[11px] uppercase tracking-wider text-white">
+                  {pov === 'CLIENT' ? 'Client POV' : 'Admin POV'}
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  {pov === 'CLIENT' ? 'Citizen Resident' : 'System Administration'}
+                </div>
+              </div>
+            </div>
+
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 font-mono font-medium text-slate-300">
+              {user?.role || 'Guest'}
+            </span>
           </div>
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1.5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-2">
-            Main Navigation
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-1">
+            {pov === 'CLIENT' ? 'Citizen Menu' : 'Administrative Flow'}
           </div>
+
           {navigation.map((item) => {
-            const active =
-              pathname === item.href ||
-              (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            // Determine active state
+            let active = false;
+            if (item.href === '/complaints/process') {
+              active = pathname.startsWith('/complaints/process');
+            } else if (item.href === '/complaints') {
+              active =
+                (pathname === '/complaints' || pathname.startsWith('/complaints/')) &&
+                !pathname.startsWith('/complaints/process');
+            } else if (item.href === '/dashboard') {
+              active = pathname === '/dashboard' || pathname === '/';
+            } else if (item.href === '/settings') {
+              active = pathname.startsWith('/settings');
+            } else {
+              active = pathname === item.href;
+            }
 
             return (
               <Link
@@ -76,7 +171,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
                   active
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30'
+                    ? pov === 'CLIENT'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40'
+                      : 'bg-blue-600 text-white shadow-md shadow-blue-900/30'
                     : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`}
               >
@@ -88,22 +185,62 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   />
                   <span>{item.name}</span>
                 </div>
-                {active && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
+                <div className="flex items-center gap-1.5">
+                  {item.badge && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/20 font-medium">
+                      {item.badge}
+                    </span>
+                  )}
+                  {active && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
+                </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-slate-800 space-y-2">
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <div className="text-[11px] text-slate-300 font-medium">
-              Live Intake Portal Active
+        {/* User Profile & Account Footer */}
+        <div className="p-3 border-t border-slate-800 space-y-2">
+          {user ? (
+            <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+              <Link
+                href="/settings"
+                onClick={onClose}
+                className="min-w-0 pr-2 hover:opacity-80 transition-opacity block flex-1"
+                title="Go to Settings"
+              >
+                <div className="text-xs font-bold text-white truncate">
+                  {user.full_name}
+                </div>
+                <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
+                <div className="text-[9px] text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                  <span>Role: {user.role}</span>
+                  <span className="text-slate-500">•</span>
+                  <span className="text-slate-400 hover:underline">Settings &rarr;</span>
+                </div>
+              </Link>
+              <button
+                onClick={logout}
+                title="Log Out"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors shrink-0"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
-          </div>
-          <div className="text-[10px] text-center text-slate-500 pt-1">
-            Republic of the Philippines • Butuan City
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center justify-center gap-2 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Sign In / Choose Role</span>
+            </Link>
+          )}
+
+          <div className="flex items-center justify-between px-1 text-[10px] text-slate-500">
+            <Link href="/login" className="hover:text-slate-300 transition-colors">
+              Switch Account
+            </Link>
+            <span>Butuan City, PH</span>
           </div>
         </div>
       </aside>

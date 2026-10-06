@@ -2,14 +2,24 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
 import { Complaint } from '@/lib/types';
 import { fetchComplaintsAction } from '@/lib/actions/complaints';
 import CityOverviewMap from '@/components/map/CityOverviewMap';
 import { MapPin, PlusCircle, RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function IncidentMapPage() {
+  const { pov } = useAuth();
+  const router = useRouter();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (pov === 'CLIENT') {
+      router.replace('/complaints?tab=map');
+    }
+  }, [pov, router]);
 
   const loadData = async () => {
     try {
@@ -56,13 +66,6 @@ export default function IncidentMapPage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <Link
-            href="/complaints/register"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition-colors"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Register Complaint</span>
-          </Link>
         </div>
       </div>
 
@@ -72,21 +75,6 @@ export default function IncidentMapPage() {
           <div className="flex flex-col items-center justify-center min-h-[450px] space-y-3">
             <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
             <p className="text-xs text-slate-500 font-medium">Initializing city map & coordinates...</p>
-          </div>
-        ) : complaints.length === 0 ? (
-          <div className="space-y-6">
-            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 flex items-center justify-between text-xs">
-              <span className="text-blue-800 dark:text-blue-300 font-medium">
-                No complaints recorded yet. Registered complaints with GPS coordinates will appear here on the map.
-              </span>
-              <Link
-                href="/complaints/register"
-                className="font-bold text-blue-600 dark:text-blue-400 hover:underline shrink-0 ml-2"
-              >
-                Register First Complaint &rarr;
-              </Link>
-            </div>
-            <CityOverviewMap complaints={[]} />
           </div>
         ) : (
           <CityOverviewMap complaints={complaints} />

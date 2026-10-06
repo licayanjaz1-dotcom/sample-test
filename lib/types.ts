@@ -1,6 +1,8 @@
-export type UserRole = 'ADMIN' | 'STAFF';
+export type UserRole = 'ADMIN' | 'CLERK' | 'STAFF' | 'CLIENT';
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE';
+
+export type AppPOV = 'CLIENT' | 'ADMIN';
 
 export type ComplaintPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
@@ -20,6 +22,10 @@ export interface UserProfile {
   contact_number?: string | null;
   status: UserStatus;
   created_at?: string;
+  department?: string | null;
+  assigned_barangay?: string | null;
+  notification_email?: boolean;
+  notification_sms?: boolean;
 }
 
 export interface Barangay {

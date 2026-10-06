@@ -1,1 +1,98 @@
-[]
+[
+  {
+    "id": "cmp-1791276099077",
+    "complaint_number": "BTC-2026-7750",
+    "category_id": "cat-1",
+    "location_id": "loc-1791276099077",
+    "description": "stock in drainage",
+    "priority": "High",
+    "status": "Closed",
+    "photo_path": null,
+    "created_by": "Officer",
+    "date_reported": "2026-10-06T08:41:39.077Z",
+    "created_at": "2026-10-06T08:41:39.077Z",
+    "updated_at": "2026-10-06T09:06:57.022Z",
+    "complainant": {
+      "id": "cmp-usr-1791276099077",
+      "full_name": "Reymund Villaruz",
+      "contact_number": "09123456789",
+      "email": "licayanjaz1@gmail.com",
+      "address": "Purok 2",
+      "barangay_id": "brgy-31",
+      "is_anonymous": false
+    },
+    "category": {
+      "id": "cat-1",
+      "name": "Garbage / Improper Waste Disposal",
+      "description": "Uncollected refuse, illegal dumping, littering, and dirty surroundings.",
+      "status": "ACTIVE",
+      "created_at": "2026-10-06T08:36:41.982Z"
+    },
+    "location": {
+      "id": "loc-1791276099077",
+      "barangay_id": "brgy-31",
+      "barangay_name": "Doongan",
+      "purok_zone": "Upper ",
+      "street": "Purok 8",
+      "landmark": null,
+      "location_description": "Water tank",
+      "latitude": 8.965203,
+      "longitude": 125.517749
+    },
+    "status_history": [
+      {
+        "id": "sth-1791276099077",
+        "complaint_id": "cmp-1791276099077",
+        "previous_status": null,
+        "new_status": "Pending",
+        "changed_by": "Citizen Intake",
+        "changed_by_name": "Reymund Villaruz",
+        "remarks": "Complaint registered successfully.",
+        "created_at": "2026-10-06T08:41:39.077Z"
+      },
+      {
+        "id": "sth-1791276351175",
+        "complaint_id": "cmp-1791276099077",
+        "previous_status": "Pending",
+        "new_status": "Assigned",
+        "changed_by": "Officer",
+        "changed_by_name": "Staff Officer",
+        "remarks": "Status updated from Pending to Assigned",
+        "created_at": "2026-10-06T08:45:51.175Z"
+      },
+      {
+        "id": "sth-1791276356811",
+        "complaint_id": "cmp-1791276099077",
+        "previous_status": "Assigned",
+        "new_status": "In Progress",
+        "changed_by": "Officer",
+        "changed_by_name": "Staff Officer",
+        "remarks": "Status updated from Assigned to In Progress",
+        "created_at": "2026-10-06T08:45:56.811Z"
+      },
+      {
+        "id": "sth-1791277604481",
+        "complaint_id": "cmp-1791276099077",
+        "previous_status": "In Progress",
+        "new_status": "Resolved",
+        "changed_by": "Officer",
+        "changed_by_name": "Staff Officer",
+        "remarks": "Hinlo na haha",
+        "created_at": "2026-10-06T09:06:44.481Z"
+      },
+      {
+        "id": "sth-1791277617022",
+        "complaint_id": "cmp-1791276099077",
+        "previous_status": "Resolved",
+        "new_status": "Closed",
+        "changed_by": "usr-admin-01",
+        "changed_by_name": "Complaints Administrator",
+        "remarks": "Moving complaint to Closed stage.",
+        "created_at": "2026-10-06T09:06:57.022Z"
+      }
+    ],
+    "action_records": [],
+    "assignments": [],
+    "date_resolved": "2026-10-06T09:06:44.481Z"
+  }
+]

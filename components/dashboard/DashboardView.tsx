@@ -90,18 +90,16 @@ export default function DashboardView() {
               <span>Refresh</span>
             </button>
             <Link
-              href="/map"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition-colors"
+              href="/complaints"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition-colors"
             >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>Live City Map</span>
+              <span>Complaint List &rarr;</span>
             </Link>
             <Link
-              href="/complaints/register"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white text-xs font-semibold shadow-md transition-colors"
+              href="/complaints/process"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md transition-colors"
             >
-              <PlusCircle className="w-4 h-4" />
-              <span>Register Complaint</span>
+              <span>The Process of the Complaint &rarr;</span>
             </Link>
           </div>
         </div>
