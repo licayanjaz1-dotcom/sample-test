@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserProfile, UserRole, AppPOV } from '../types';
 import { DEFAULT_USERS } from '../constants';
+import { isSupabaseConfigured, supabase } from '../supabase/client';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -219,8 +220,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
       setUser(updatedUser);
       localStorage.setItem('butuan_custom_profile_' + user.id, JSON.stringify(updatedUser));
+
+      if (isSupabaseConfigured() && supabase) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({
+              full_name: updatedUser.full_name,
+              email: updatedUser.email,
+              contact_number: updatedUser.contact_number,
+              department: updatedUser.department,
+              assigned_barangay: updatedUser.assigned_barangay,
+              notification_email: updatedUser.notification_email,
+              notification_sms: updatedUser.notification_sms,
+            })
+            .eq('id', user.id);
+        } catch {
+          // Ignore
+        }
+      }
+
       return { success: true };
-    } catch (err) {
+    } catch {
       return { success: false, error: 'Failed to save profile changes' };
     }
   };

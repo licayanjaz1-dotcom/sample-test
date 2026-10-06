@@ -1,5 +1,58 @@
 [
   {
+    "id": "cmp-1791280946135",
+    "complaint_number": "BTC-2026-2957",
+    "category_id": "b44dfe04-f24e-4d00-a492-dd276c4723be",
+    "location_id": "loc-1791280946136",
+    "description": "icqnt see her",
+    "priority": "High",
+    "status": "Pending",
+    "photo_path": null,
+    "created_by": "Officer",
+    "date_reported": "2026-10-06T10:02:26.135Z",
+    "created_at": "2026-10-06T10:02:26.135Z",
+    "updated_at": "2026-10-06T10:02:26.135Z",
+    "complainant": {
+      "id": "cmp-usr-1791280946136",
+      "full_name": "lee",
+      "contact_number": "091231212",
+      "email": "licayanjaz1@gmail.com",
+      "address": "ambot",
+      "barangay_id": "93389444-7eab-4091-b98b-f96f40e7dd03",
+      "is_anonymous": false
+    },
+    "category": {
+      "id": "b44dfe04-f24e-4d00-a492-dd276c4723be",
+      "name": "General Concern",
+      "status": "ACTIVE"
+    },
+    "location": {
+      "id": "loc-1791280946136",
+      "barangay_id": "93389444-7eab-4091-b98b-f96f40e7dd03",
+      "barangay_name": "Baobaoan",
+      "purok_zone": null,
+      "street": null,
+      "landmark": null,
+      "location_description": null,
+      "latitude": 8.957832,
+      "longitude": 125.525163
+    },
+    "status_history": [
+      {
+        "id": "sth-1791280946136",
+        "complaint_id": "cmp-1791280946135",
+        "previous_status": null,
+        "new_status": "Pending",
+        "changed_by": "Citizen Intake",
+        "changed_by_name": "lee",
+        "remarks": "Complaint registered successfully.",
+        "created_at": "2026-10-06T10:02:26.135Z"
+      }
+    ],
+    "action_records": [],
+    "assignments": []
+  },
+  {
     "id": "cmp-1791276099077",
     "complaint_number": "BTC-2026-7750",
     "category_id": "cat-1",

@@ -106,9 +106,8 @@ export async function getComplaints(
       let query = supabase.from('complaints').select(`
         *,
         category:complaint_categories(*),
-        location:locations(*, barangay:barangays(*)),
+        location:locations(*),
         complainant:complainants(*),
-        assigned_staff:profiles!complaints_assigned_to_fkey(*),
         status_history:complaint_status_history(*),
         action_records:action_records(*),
         assignments:complaint_assignments(*)
@@ -126,7 +125,43 @@ export async function getComplaints(
 
       const { data, error } = await query.order('created_at', { ascending: false });
       if (!error && data && data.length > 0) {
-        return data as unknown as Complaint[];
+        let list = (data as unknown as Complaint[]).map((c) => ({
+          ...c,
+          assigned_staff: c.assigned_to
+            ? cachedUsers.find((u) => u.id === c.assigned_to) || null
+            : null,
+          status_history: Array.isArray(c.status_history)
+            ? [...c.status_history].sort(
+                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+            : [],
+          assignments: Array.isArray(c.assignments)
+            ? [...c.assignments].sort(
+                (a, b) =>
+                  new Date(b.created_at || b.assignment_date).getTime() -
+                  new Date(a.created_at || a.assignment_date).getTime()
+              )
+            : [],
+          action_records: Array.isArray(c.action_records)
+            ? [...c.action_records].sort(
+                (a, b) =>
+                  new Date(b.created_at || b.action_date).getTime() -
+                  new Date(a.created_at || a.action_date).getTime()
+              )
+            : [],
+        }));
+
+        if (filters?.search) {
+          const q = filters.search.toLowerCase().trim();
+          list = list.filter(
+            (c) =>
+              c.complaint_number.toLowerCase().includes(q) ||
+              c.description.toLowerCase().includes(q) ||
+              c.location?.barangay_name?.toLowerCase().includes(q) ||
+              c.complainant?.full_name?.toLowerCase().includes(q)
+          );
+        }
+        return list;
       }
     } catch {
       // Fallback to local store
@@ -194,18 +229,42 @@ export async function getComplaintById(id: string): Promise<Complaint | null> {
         .select(`
           *,
           category:complaint_categories(*),
-          location:locations(*, barangay:barangays(*)),
+          location:locations(*),
           complainant:complainants(*),
-          assigned_staff:profiles!complaints_assigned_to_fkey(*),
           status_history:complaint_status_history(*),
           action_records:action_records(*),
           assignments:complaint_assignments(*)
         `)
-        .eq('id', id)
-        .single();
+        .or(`id.eq.${id},complaint_number.eq.${id}`)
+        .maybeSingle();
 
       if (!error && data) {
-        return data as unknown as Complaint;
+        const c = data as unknown as Complaint;
+        return {
+          ...c,
+          assigned_staff: c.assigned_to
+            ? cachedUsers.find((u) => u.id === c.assigned_to) || null
+            : null,
+          status_history: Array.isArray(c.status_history)
+            ? [...c.status_history].sort(
+                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+            : [],
+          assignments: Array.isArray(c.assignments)
+            ? [...c.assignments].sort(
+                (a, b) =>
+                  new Date(b.created_at || b.assignment_date).getTime() -
+                  new Date(a.created_at || a.assignment_date).getTime()
+              )
+            : [],
+          action_records: Array.isArray(c.action_records)
+            ? [...c.action_records].sort(
+                (a, b) =>
+                  new Date(b.created_at || b.action_date).getTime() -
+                  new Date(a.created_at || a.action_date).getTime()
+              )
+            : [],
+        };
       }
     } catch {
       // Fallback
@@ -292,9 +351,39 @@ export async function createComplaint(
 
   if (isSupabaseConfigured() && supabase) {
     try {
+      // 1. Insert Complainant
+      if (newComplaint.complainant) {
+        await supabase.from('complainants').insert({
+          id: newComplaint.complainant.id,
+          full_name: newComplaint.complainant.full_name,
+          contact_number: newComplaint.complainant.contact_number,
+          email: newComplaint.complainant.email,
+          address: newComplaint.complainant.address,
+          barangay_id: newComplaint.complainant.barangay_id,
+          is_anonymous: newComplaint.complainant.is_anonymous,
+        });
+      }
+
+      // 2. Insert Location
+      if (newComplaint.location) {
+        await supabase.from('locations').insert({
+          id: newComplaint.location.id,
+          barangay_id: newComplaint.location.barangay_id,
+          barangay_name: newComplaint.location.barangay_name,
+          purok_zone: newComplaint.location.purok_zone,
+          street: newComplaint.location.street,
+          landmark: newComplaint.location.landmark,
+          location_description: newComplaint.location.location_description,
+          latitude: newComplaint.location.latitude,
+          longitude: newComplaint.location.longitude,
+        });
+      }
+
+      // 3. Insert Complaint
       await supabase.from('complaints').insert({
         id: newComplaint.id,
         complaint_number: newComplaint.complaint_number,
+        complainant_id: newComplaint.complainant?.id,
         category_id: newComplaint.category_id,
         location_id: newComplaint.location_id,
         description: newComplaint.description,
@@ -304,8 +393,23 @@ export async function createComplaint(
         created_by: newComplaint.created_by,
         date_reported: newComplaint.date_reported,
       });
-    } catch {
+
+      // 4. Insert Initial Status History
+      if (newComplaint.status_history && newComplaint.status_history.length > 0) {
+        const hist = newComplaint.status_history[0];
+        await supabase.from('complaint_status_history').insert({
+          id: hist.id,
+          complaint_id: newComplaint.id,
+          previous_status: hist.previous_status,
+          new_status: hist.new_status,
+          changed_by: hist.changed_by,
+          changed_by_name: hist.changed_by_name,
+          remarks: hist.remarks,
+        });
+      }
+    } catch (err) {
       // Keep cached copy
+      console.error('Supabase complaint insert error:', err);
     }
   }
 
@@ -319,9 +423,16 @@ export async function updateComplaintStatus(
   changerName: string = 'Staff Officer',
   remarks?: string
 ): Promise<Complaint | null> {
-  const complaint = cachedComplaints.find(
+  let complaint = cachedComplaints.find(
     (c) => c.id === complaintId || c.complaint_number === complaintId
   );
+  if (!complaint) {
+    const fromDb = await getComplaintById(complaintId);
+    if (fromDb) {
+      complaint = fromDb;
+      cachedComplaints.unshift(complaint);
+    }
+  }
   if (!complaint) return null;
 
   const previousStatus = complaint.status;
@@ -357,9 +468,19 @@ export async function updateComplaintStatus(
           date_resolved: complaint.date_resolved,
           updated_at: complaint.updated_at,
         })
-        .eq('id', complaint.id);
-    } catch {
-      // Ignored
+        .or(`id.eq.${complaint.id},complaint_number.eq.${complaint.id}`);
+
+      await supabase.from('complaint_status_history').insert({
+        id: historyEntry.id,
+        complaint_id: complaint.id,
+        previous_status: historyEntry.previous_status,
+        new_status: historyEntry.new_status,
+        changed_by: historyEntry.changed_by,
+        changed_by_name: historyEntry.changed_by_name,
+        remarks: historyEntry.remarks,
+      });
+    } catch (err) {
+      console.error('Supabase status update error:', err);
     }
   }
 
@@ -373,9 +494,16 @@ export async function assignComplaint(
   instructions?: string,
   remarks?: string
 ): Promise<Complaint | null> {
-  const complaint = cachedComplaints.find(
+  let complaint = cachedComplaints.find(
     (c) => c.id === complaintId || c.complaint_number === complaintId
   );
+  if (!complaint) {
+    const fromDb = await getComplaintById(complaintId);
+    if (fromDb) {
+      complaint = fromDb;
+      cachedComplaints.unshift(complaint);
+    }
+  }
   if (!complaint) return null;
 
   const staff = cachedUsers.find((u) => u.id === assignedTo);
@@ -390,11 +518,12 @@ export async function assignComplaint(
   };
   complaint.updated_at = new Date().toISOString();
 
+  let historyEntry: ComplaintStatusHistory | null = null;
   if (complaint.status === 'Pending' || complaint.status === 'Verified') {
     const prev = complaint.status;
     complaint.status = 'Assigned';
     if (!complaint.status_history) complaint.status_history = [];
-    complaint.status_history.push({
+    historyEntry = {
       id: `sth-${Date.now()}`,
       complaint_id: complaint.id,
       previous_status: prev,
@@ -403,7 +532,8 @@ export async function assignComplaint(
       changed_by_name: 'Administrator',
       remarks: `Assigned to ${staff?.full_name || 'Staff'}.`,
       created_at: new Date().toISOString(),
-    });
+    };
+    complaint.status_history.push(historyEntry);
   }
 
   const assignment: ComplaintAssignment = {
@@ -423,6 +553,43 @@ export async function assignComplaint(
   complaint.assignments.unshift(assignment);
 
   saveStoredComplaints(cachedComplaints);
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase
+        .from('complaints')
+        .update({
+          assigned_to: assignedTo,
+          status: complaint.status,
+          updated_at: complaint.updated_at,
+        })
+        .or(`id.eq.${complaint.id},complaint_number.eq.${complaint.id}`);
+
+      await supabase.from('complaint_assignments').insert({
+        id: assignment.id,
+        complaint_id: complaint.id,
+        assigned_to: assignment.assigned_to,
+        assigned_by: assignment.assigned_by,
+        instructions: assignment.instructions,
+        remarks: assignment.remarks,
+      });
+
+      if (historyEntry) {
+        await supabase.from('complaint_status_history').insert({
+          id: historyEntry.id,
+          complaint_id: complaint.id,
+          previous_status: historyEntry.previous_status,
+          new_status: historyEntry.new_status,
+          changed_by: historyEntry.changed_by,
+          changed_by_name: historyEntry.changed_by_name,
+          remarks: historyEntry.remarks,
+        });
+      }
+    } catch (err) {
+      console.error('Supabase assign error:', err);
+    }
+  }
+
   return complaint;
 }
 
@@ -433,12 +600,20 @@ export async function addActionRecord(
   userName: string = 'Staff Officer',
   remarks?: string
 ): Promise<ActionRecord> {
-  const complaint = cachedComplaints.find(
+  let complaint = cachedComplaints.find(
     (c) => c.id === complaintId || c.complaint_number === complaintId
   );
+  if (!complaint) {
+    const fromDb = await getComplaintById(complaintId);
+    if (fromDb) {
+      complaint = fromDb;
+      cachedComplaints.unshift(complaint);
+    }
+  }
+
   const record: ActionRecord = {
     id: `act-${Date.now()}`,
-    complaint_id: complaintId,
+    complaint_id: complaint?.id || complaintId,
     action_taken: actionTaken,
     remarks: remarks || null,
     action_date: new Date().toISOString(),
@@ -463,6 +638,21 @@ export async function addActionRecord(
     saveStoredComplaints(cachedComplaints);
   }
 
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('action_records').insert({
+        id: record.id,
+        complaint_id: record.complaint_id,
+        action_taken: record.action_taken,
+        remarks: record.remarks,
+        user_id: record.user_id,
+        user_name: record.user_name,
+      });
+    } catch (err) {
+      console.error('Supabase addActionRecord error:', err);
+    }
+  }
+
   return record;
 }
 
@@ -473,16 +663,20 @@ export async function deleteComplaint(id: string): Promise<boolean> {
   if (index !== -1) {
     cachedComplaints.splice(index, 1);
     saveStoredComplaints(cachedComplaints);
-    if (isSupabaseConfigured() && supabase) {
-      try {
-        await supabase.from('complaints').delete().eq('id', id);
-      } catch {
-        // Ignored
-      }
-    }
-    return true;
   }
-  return false;
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase
+        .from('complaints')
+        .delete()
+        .or(`id.eq.${id},complaint_number.eq.${id}`);
+      return true;
+    } catch {
+      // Ignored
+    }
+  }
+  return index !== -1;
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -567,6 +761,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 // Barangay Management Methods
 export async function getBarangays(): Promise<Barangay[]> {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('barangays')
+        .select('*')
+        .order('name', { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data as Barangay[];
+      }
+    } catch {
+      // Fallback
+    }
+  }
   return cachedBarangays;
 }
 
@@ -581,6 +788,13 @@ export async function createBarangay(
     created_at: new Date().toISOString(),
   };
   cachedBarangays.unshift(newBrgy);
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('barangays').insert(newBrgy);
+    } catch {
+      // Fallback
+    }
+  }
   return newBrgy;
 }
 
@@ -591,11 +805,31 @@ export async function updateBarangay(
   const brgy = cachedBarangays.find((b) => b.id === id);
   if (!brgy) return null;
   Object.assign(brgy, updates);
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('barangays').update(updates).eq('id', id);
+    } catch {
+      // Fallback
+    }
+  }
   return brgy;
 }
 
 // Category Management Methods
 export async function getCategories(): Promise<ComplaintCategory[]> {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('complaint_categories')
+        .select('*')
+        .order('name', { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data as ComplaintCategory[];
+      }
+    } catch {
+      // Fallback
+    }
+  }
   return cachedCategories;
 }
 
@@ -611,6 +845,13 @@ export async function createCategory(
     created_at: new Date().toISOString(),
   };
   cachedCategories.unshift(newCat);
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('complaint_categories').insert(newCat);
+    } catch {
+      // Fallback
+    }
+  }
   return newCat;
 }
 
@@ -621,11 +862,31 @@ export async function updateCategory(
   const cat = cachedCategories.find((c) => c.id === id);
   if (!cat) return null;
   Object.assign(cat, updates);
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('complaint_categories').update(updates).eq('id', id);
+    } catch {
+      // Fallback
+    }
+  }
   return cat;
 }
 
 // User Management Methods
 export async function getUsers(): Promise<UserProfile[]> {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data as UserProfile[];
+      }
+    } catch {
+      // Fallback
+    }
+  }
   return cachedUsers;
 }
 
@@ -638,6 +899,13 @@ export async function createUser(
     created_at: new Date().toISOString(),
   };
   cachedUsers.unshift(newUser);
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('profiles').insert(newUser);
+    } catch {
+      // Fallback
+    }
+  }
   return newUser;
 }
 
@@ -648,5 +916,12 @@ export async function updateUser(
   const user = cachedUsers.find((u) => u.id === id);
   if (!user) return null;
   Object.assign(user, updates);
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('profiles').update(updates).eq('id', id);
+    } catch {
+      // Fallback
+    }
+  }
   return user;
 }
