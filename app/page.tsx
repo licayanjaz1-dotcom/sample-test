@@ -1,16 +1,27 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import DashboardView from '@/components/dashboard/DashboardView';
-import ClientComplaintsPortal from '@/components/complaints/ClientComplaintsPortal';
 
 export default function HomePage() {
-  const { pov } = useAuth();
+  const { isAdmin, isLoading } = useAuth();
+  const router = useRouter();
 
-  if (pov === 'CLIENT') {
-    return <ClientComplaintsPortal initialTab="track" />;
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAdmin) {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
+    }
+  }, [isAdmin, isLoading, router]);
 
-  return <DashboardView />;
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-xs text-slate-500">Redirecting to your portal...</p>
+    </div>
+  );
 }

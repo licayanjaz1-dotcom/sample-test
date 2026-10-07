@@ -1,17 +1,143 @@
 [
   {
+    "id": "cmp-1791365816831",
+    "complaint_number": "BTC-2026-4706",
+    "category_id": "b3668994-2d02-4849-b71c-632eb1bd5ea5",
+    "location_id": "loc-1791365816831",
+    "description": "Maka bangga og car",
+    "priority": "Urgent",
+    "status": "Verified",
+    "photo_path": null,
+    "created_by": "Officer",
+    "date_reported": "2026-10-07T09:36:56.831Z",
+    "created_at": "2026-10-07T09:36:56.831Z",
+    "updated_at": "2026-10-07T09:37:51.103Z",
+    "complainant": {
+      "id": "cmp-usr-1791365816831",
+      "full_name": "Jeremey",
+      "contact_number": "09123456789",
+      "email": "licayanjaz1@gmail.com",
+      "address": "PUrok 19",
+      "barangay_id": "74dd1cd5-8fff-47f1-925b-539c9806bd84",
+      "is_anonymous": false
+    },
+    "category": {
+      "id": "b3668994-2d02-4849-b71c-632eb1bd5ea5",
+      "name": "General Concern",
+      "status": "ACTIVE"
+    },
+    "location": {
+      "id": "loc-1791365816831",
+      "barangay_id": "74dd1cd5-8fff-47f1-925b-539c9806bd84",
+      "barangay_name": "Bading Pob. (Barangay 22)",
+      "purok_zone": null,
+      "street": null,
+      "landmark": null,
+      "location_description": null,
+      "latitude": 8.969614,
+      "longitude": 125.534508
+    },
+    "status_history": [
+      {
+        "id": "sth-1791365816831",
+        "complaint_id": "cmp-1791365816831",
+        "previous_status": null,
+        "new_status": "Pending",
+        "changed_by": "Citizen Intake",
+        "changed_by_name": "Jeremey",
+        "remarks": "Complaint registered successfully.",
+        "created_at": "2026-10-07T09:36:56.831Z"
+      },
+      {
+        "id": "sth-1791365871103",
+        "complaint_id": "cmp-1791365816831",
+        "previous_status": "Pending",
+        "new_status": "Verified",
+        "changed_by": "Officer",
+        "changed_by_name": "Staff Officer",
+        "remarks": "Status updated from Pending to Verified",
+        "created_at": "2026-10-07T09:37:51.103Z"
+      }
+    ],
+    "action_records": [],
+    "assignments": []
+  },
+  {
+    "id": "cmp-1791356799205",
+    "complaint_number": "BTC-2026-7268",
+    "category_id": "0f74011c-595a-4e6b-9449-87e2691442a9",
+    "location_id": "loc-1791356799205",
+    "description": "baha na kaayo",
+    "priority": "Medium",
+    "status": "Verified",
+    "photo_path": null,
+    "created_by": "Officer",
+    "date_reported": "2026-10-07T07:06:39.205Z",
+    "created_at": "2026-10-07T07:06:39.205Z",
+    "updated_at": "2026-10-07T07:09:05.786Z",
+    "complainant": {
+      "id": "cmp-usr-1791356799205",
+      "full_name": "Jane",
+      "contact_number": "09123456789",
+      "email": "licayanjaz1@gmail.com",
+      "address": "purok 2",
+      "barangay_id": "caf6642e-49c5-41f8-bd72-8a1630629874",
+      "is_anonymous": false
+    },
+    "category": {
+      "id": "0f74011c-595a-4e6b-9449-87e2691442a9",
+      "name": "General Concern",
+      "status": "ACTIVE"
+    },
+    "location": {
+      "id": "loc-1791356799205",
+      "barangay_id": "caf6642e-49c5-41f8-bd72-8a1630629874",
+      "barangay_name": "Agao Pob. (Barangay 9)",
+      "purok_zone": null,
+      "street": null,
+      "landmark": null,
+      "location_description": null,
+      "latitude": 8.948182,
+      "longitude": 125.541987
+    },
+    "status_history": [
+      {
+        "id": "sth-1791356799205",
+        "complaint_id": "cmp-1791356799205",
+        "previous_status": null,
+        "new_status": "Pending",
+        "changed_by": "Citizen Intake",
+        "changed_by_name": "Jane",
+        "remarks": "Complaint registered successfully.",
+        "created_at": "2026-10-07T07:06:39.205Z"
+      },
+      {
+        "id": "sth-1791356945786",
+        "complaint_id": "cmp-1791356799205",
+        "previous_status": "Pending",
+        "new_status": "Verified",
+        "changed_by": "Officer",
+        "changed_by_name": "Staff Officer",
+        "remarks": "Status updated from Pending to Verified",
+        "created_at": "2026-10-07T07:09:05.786Z"
+      }
+    ],
+    "action_records": [],
+    "assignments": []
+  },
+  {
     "id": "cmp-1791280946135",
     "complaint_number": "BTC-2026-2957",
     "category_id": "b44dfe04-f24e-4d00-a492-dd276c4723be",
     "location_id": "loc-1791280946136",
     "description": "icqnt see her",
     "priority": "High",
-    "status": "Pending",
+    "status": "Verified",
     "photo_path": null,
     "created_by": "Officer",
     "date_reported": "2026-10-06T10:02:26.135Z",
     "created_at": "2026-10-06T10:02:26.135Z",
-    "updated_at": "2026-10-06T10:02:26.135Z",
+    "updated_at": "2026-10-07T06:44:28.363Z",
     "complainant": {
       "id": "cmp-usr-1791280946136",
       "full_name": "lee",
@@ -47,6 +173,16 @@
         "changed_by_name": "lee",
         "remarks": "Complaint registered successfully.",
         "created_at": "2026-10-06T10:02:26.135Z"
+      },
+      {
+        "id": "sth-1791355468363",
+        "complaint_id": "cmp-1791280946135",
+        "previous_status": "Pending",
+        "new_status": "Verified",
+        "changed_by": "usr-admin-01",
+        "changed_by_name": "Complaints Administrator",
+        "remarks": "Moving complaint to Verified stage.",
+        "created_at": "2026-10-07T06:44:28.363Z"
       }
     ],
     "action_records": [],

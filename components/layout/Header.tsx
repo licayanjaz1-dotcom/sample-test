@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
+import { UserButton } from '@clerk/nextjs';
 import {
   Menu,
   CheckCircle,
@@ -20,11 +21,13 @@ interface HeaderProps {
 
 export default function Header({ onToggleSidebar }: HeaderProps) {
   const pathname = usePathname();
-  const { user, pov, logout } = useAuth();
+  const { user, pov, logout, isSignedIn } = useAuth();
 
   // Determine readable page title from route and POV
   let pageTitle = 'Complaints';
-  if (pathname.startsWith('/settings')) {
+  if (pathname.startsWith('/admin')) {
+    pageTitle = 'Executive Administrator Console';
+  } else if (pathname.startsWith('/settings')) {
     pageTitle = 'System & Profile Settings';
   } else if (pov === 'CLIENT') {
     pageTitle = 'Citizen Complaints Portal';
@@ -66,7 +69,7 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2.5 sm:gap-3">
-        {/* Active POV Badge based strictly on logged in role (No switch button) */}
+        {/* Active POV Badge based strictly on logged in role */}
         <div
           className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
             pov === 'CLIENT'
@@ -97,9 +100,9 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
           <Settings className="w-4 h-4" />
         </Link>
 
-        {/* User Account / Profile Info */}
-        {user ? (
-          <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
+        {/* User Account / Profile Info & Clerk UserButton */}
+        {isSignedIn && user ? (
+          <div className="flex items-center gap-2.5 pl-1 border-l border-slate-200 dark:border-slate-800">
             <Link
               href="/settings"
               title="View Profile Settings"
@@ -112,10 +115,20 @@ export default function Header({ onToggleSidebar }: HeaderProps) {
                 {user.role.toLowerCase()}
               </div>
             </Link>
+            
+            {/* Official Clerk UserButton with sign out & account management */}
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: 'w-7 h-7 ring-2 ring-blue-500/40 hover:ring-blue-500 transition-all',
+                },
+              }}
+            />
+
             <button
               onClick={logout}
-              title="Log Out"
-              className="p-1.5 rounded-lg text-slate-500 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              title="Log Out with Clerk"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:block"
             >
               <LogOut className="w-4 h-4" />
             </button>

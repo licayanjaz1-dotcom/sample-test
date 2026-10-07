@@ -42,8 +42,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     },
   ];
 
-  // Administrator POV navigation: Dashboard, Complaint List, Complaint Process, and Settings
+  // Administrator POV navigation: Admin Console, Dashboard, Complaint List, Complaint Process, and Settings
   const adminNavigation = [
+    {
+      name: 'Admin Console',
+      href: '/admin',
+      icon: ShieldCheck,
+      badge: 'Executive',
+    },
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -237,9 +243,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
 
           <div className="flex items-center justify-between px-1 text-[10px] text-slate-500">
-            <Link href="/login" className="hover:text-slate-300 transition-colors">
-              Switch Account
-            </Link>
+            <span>Clerk Authentication</span>
             <span>Butuan City, PH</span>
           </div>
         </div>

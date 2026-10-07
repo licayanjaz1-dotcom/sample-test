@@ -26,7 +26,7 @@ import {
 import Link from 'next/link';
 
 export default function SettingsPage() {
-  const { user, role, pov, isAdmin, isClient, updateProfile } = useAuth();
+  const { user, role, pov, isAdmin, isClient, updateProfile, logout } = useAuth();
 
   // Form State
   const [fullName, setFullName] = useState(user?.full_name || '');
@@ -469,12 +469,13 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Link
-              href="/login"
+            <button
+              type="button"
+              onClick={logout}
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold text-center transition-colors"
             >
-              Switch Account / Role
-            </Link>
+              Sign Out of Clerk
+            </button>
 
             {isAdmin && (
               <button
